@@ -44,9 +44,29 @@ def preprocesar_imagen(image_bytes):
 def extraer_datos(texto):
     texto_limpio = texto.replace("\n", " ")
 
-    monto = re.search(r"S/\.?\s*(\d+(?:[.,]\d{1,2})?)", texto_limpio, re.IGNORECASE)
-    operacion = re.search(r"(?:Operaci[oó]n|Nro\.?\s*de\s*operaci[oó]n)[:\s]*(\d+)", texto_limpio, re.IGNORECASE)
-    fecha = re.search(r"(\d{1,2}\s+\w+\.?\s+\d{4}|\d{2}/\d{2}/\d{4})", texto_limpio, re.IGNORECASE)
+    monto = re.search(
+        r"(?:S/|5/|s/|S\.|\/)\s*([0-9]{1,6}(?:[.,][0-9]{1,2})?)",
+        texto_limpio,
+        re.IGNORECASE
+    )
+
+    operacion = re.search(
+        r"(?:Operaci[oó]n|Nro\.?\s*de\s*operaci[oó]n)[:\s]*(\d+)",
+        texto_limpio,
+        re.IGNORECASE
+    )
+
+    fecha = re.search(
+        r"(\d{1,2}\s+\w+\.?\s+\d{4}|\d{2}/\d{2}/\d{4})",
+        texto_limpio,
+        re.IGNORECASE
+    )
+
+    nombre = re.search(
+        r"(?:S/|5/|s/)\s*[0-9]{1,6}(?:[.,][0-9]{1,2})?\s+([A-Za-zÁÉÍÓÚáéíóúÑñ\s\*]+?)\s+\d{1,2}",
+        texto_limpio,
+        re.IGNORECASE
+    )
 
     tipo = "Yape" if "yape" in texto.lower() or "yapeaste" in texto.lower() else "Plin" if "plin" in texto.lower() else "Desconocido"
 
@@ -55,7 +75,7 @@ def extraer_datos(texto):
     return {
         "fecha": fecha.group(1) if fecha else datetime.now().strftime("%d/%m/%Y"),
         "hora": datetime.now().strftime("%H:%M:%S"),
-        "nombre": "No identificado",
+        "nombre": nombre.group(1).strip() if nombre else "No identificado",
         "monto": monto_valor,
         "tipo": tipo,
         "operacion": operacion.group(1) if operacion else "No detectada",
